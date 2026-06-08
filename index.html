@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orion — Towards Lab Automation with Computer-Using Agents</title>
+<meta name="description" content="Orion is an autonomous computer-using agent for biomedical image analysis that combines large language models with terminal execution, GUI control, and adaptive multi-step reasoning." />
+<link rel="icon" href="img/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="img/favicon-180.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:        #0f2b52;
+    --navy-deep:   #0a1e3c;
+    --blue:        #1f5fad;
+    --cyan:        #38b6e0;
+    --accent:      #2f8fd0;
+    --ink:         #16202e;
+    --muted:       #5b6b80;
+    --line:        #e3e8ef;
+    --bg:          #ffffff;
+    --bg-soft:     #f5f8fc;
+    --bg-tint:     #eef4fb;
+    --max:         1180px;
+    --read:        720px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Google Sans Flex', 'Google Sans', 'Inter', Arial, Helvetica, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.45;
+    letter-spacing: 0.012em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; display: block; }
+
+  /* ---------- Top nav ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto; padding: 0 28px;
+    height: 62px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .nav-logo img { height: 26px; width: auto; }
+  .nav-links { display: flex; gap: 26px; font-size: 14px; font-weight: 500; }
+  .nav-links a { color: var(--muted); }
+  .nav-links a:hover { color: var(--navy); text-decoration: none; }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* ---------- Hero (light) ---------- */
+  .hero {
+    position: relative; overflow: hidden;
+    background: #ffffff;
+    color: var(--ink);
+  }
+  .stars { position: absolute; inset: 0; pointer-events: none; opacity: 0.35; }
+  .hero-inner {
+    position: relative; max-width: var(--max); margin: 0 auto;
+    padding: 78px 28px 92px; text-align: center;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600; color: var(--accent);
+    background: var(--bg-tint); border: 1px solid #d5e4f4; border-radius: 999px;
+    padding: 6px 16px; margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+    font-size: clamp(2.05rem, 4.3vw, 3.35rem); line-height: 1.2;
+    font-weight: 500; letter-spacing: 0; margin: 0 auto 24px; max-width: 30ch;
+    color: var(--navy);
+  }
+  .hero h1 .grad {
+    background: linear-gradient(95deg, #1f5fad, #2f8fd0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .title-logo {
+    display: inline-block; height: 1em; width: auto;
+    vertical-align: -0.12em; margin-right: 0.04em;
+  }
+  .hero p.lede {
+    font-size: clamp(1.1rem, 1.8vw, 1.34rem); color: #1a1d22;
+    max-width: 700px; margin: 0 auto 30px; font-weight: 300;
+  }
+  .authors { font-size: 14.5px; color: var(--muted); margin: 0 auto 4px; max-width: 760px; }
+  .authors b { color: var(--navy); font-weight: 600; }
+  .affil { font-size: 12.5px; color: var(--muted); margin-bottom: 22px; }
+  .affil-logos {
+    display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap; margin: 0 auto 34px;
+  }
+  .affil-logos img { display: block; width: auto; opacity: 0.92; transition: opacity .2s ease; }
+  .affil-logos a:hover img { opacity: 1; }
+  .lg-gene    { height: 42px; }
+  .lg-hku     { height: 48px; }
+  .lg-stanford{ height: 42px; }
+  @media (max-width: 560px) { .affil-logos { gap: 26px; } .lg-hku { height: 40px; } .lg-stanford { height: 36px; } .lg-gene { height: 36px; } }
+  .cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 2px auto 32px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 5px; font-weight: 700; font-size: 12.5px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: #fff;
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  }
+  .btn svg { width: 13px; height: 13px; }
+  .btn:hover { text-decoration: none; transform: translateY(-2px); filter: brightness(1.06); box-shadow: 0 9px 22px -10px rgba(0,0,0,0.45); }
+  .btn svg { display: block; }
+  .btn-github  { background: #181717; }
+  .btn-arxiv   { background: #b31b1b; }
+  .btn-hf      { background: #ffcf3f; color: #3a2c00; }
+  .btn-explore { background: #1f5fad; }
+  .btn-paper   { background: #b31b1b; padding: 5px 13px; }
+  .btn-paper img { height: 15px; width: auto; display: block; }
+
+  /* ---------- Stat band ---------- */
+  .stats {
+    max-width: var(--max); margin: -52px auto 0; position: relative; z-index: 5;
+    padding: 0 28px;
+  }
+  .stats-grid {
+    background: #fff; border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: 0 18px 50px -28px rgba(15,43,82,0.42);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    overflow: hidden;
+  }
+  .stat { padding: 26px 20px; text-align: center; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: none; }
+  .stat .num {
+    font-size: clamp(1.5rem, 2.6vw, 2.05rem); font-weight: 800; letter-spacing: -0.02em;
+    background: linear-gradient(95deg, var(--blue), var(--cyan));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .stat .lbl { font-size: 12.5px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+  @media (max-width: 820px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat { border-bottom: 1px solid var(--line); }
+    .stat:nth-child(5) { grid-column: span 2; border-right: none; border-bottom: none; }
+  }
+
+  /* ---------- Sections ---------- */
+  section { max-width: var(--max); margin: 0 auto; padding: 72px 28px; }
+  .reading { max-width: var(--read); margin-left: auto; margin-right: auto; }
+  .kicker {
+    font-size: 12.5px; letter-spacing: 0.13em; text-transform: uppercase;
+    font-weight: 700; color: var(--accent); margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(1.6rem, 3vw, 2.25rem); line-height: 1.2; letter-spacing: -0.012em;
+    font-weight: 500; margin: 0 0 20px; color: var(--navy);
+  }
+  h3 { font-size: 1.2rem; font-weight: 600; color: var(--navy); margin: 32px 0 10px; }
+  p { margin: 0 0 1.25rem; color: #2c3a4d; line-height: 1.45; }
+  .reading p { font-size: 1.125rem; letter-spacing: 0.012em; }
+  .lead { font-size: 1.22rem !important; color: var(--ink); font-weight: 400; }
+
+  .divider { height: 1px; background: var(--line); max-width: var(--max); margin: 0 auto; }
+
+  /* full-bleed bioimaging banner */
+  .bio-banner { width: 100%; line-height: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .bio-banner img { width: 100%; height: clamp(150px, 22vw, 300px); object-fit: cover; display: block; }
+
+  /* figure block */
+  figure.fig {
+    margin: 40px auto 8px; max-width: var(--max);
+  }
+  figure.fig img {
+    width: 100%; display: block;
+  }
+  figure.fig figcaption {
+    font-size: 13.5px; color: var(--muted); margin-top: 14px; line-height: 1.55;
+    max-width: 880px;
+  }
+  figure.fig figcaption b { color: var(--navy); }
+  figure.fig.fig-narrow { max-width: var(--read); }
+  figure.fig.fig-narrow figcaption { max-width: 100%; }
+
+  /* responsive 16:9 video embed */
+  .video-embed { width: 100%; max-width: var(--read); margin: 32px auto 0; aspect-ratio: 16 / 9; line-height: 0; }
+  .video-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  /* soft / tinted section wrapper */
+  .band { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .band-navy {
+    background:
+      radial-gradient(800px 400px at 85% 0%, rgba(56,182,224,0.10), transparent 60%),
+      linear-gradient(180deg, #0c2348, #11305c);
+    color: #dce8f6;
+  }
+  .band-navy h2 { color: #fff; }
+  .band-navy .kicker { color: #6fd0f0; }
+  .band-navy p { color: #c0d3ea; }
+
+  /* pull quote */
+  .quote {
+    max-width: 860px; margin: 8px auto; padding: 8px 0 8px 28px;
+    border-left: 4px solid var(--cyan);
+    font-family: 'Newsreader', Georgia, serif; font-size: 1.5rem; line-height: 1.4;
+    color: var(--navy); font-weight: 400;
+  }
+  .band-navy .quote { color: #eaf3fd; border-color: #6fd0f0; }
+
+  /* feature grid */
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 28px; }
+  @media (max-width: 760px) { .feat-grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px -28px rgba(15,43,82,0.45); }
+  .card .ic {
+    width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--bg-tint), #dcebf9); margin-bottom: 14px;
+    font-size: 20px;
+  }
+  .card h4 { margin: 0 0 8px; font-size: 1.08rem; color: var(--navy); }
+  .card p { margin: 0; font-size: 0.96rem; color: var(--muted); }
+
+  /* benchmark mini-table */
+  .bench { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 30px 0 6px; }
+  @media (max-width: 700px) { .bench { grid-template-columns: repeat(2, 1fr); } }
+  .bench .b {
+    border: 1px solid var(--line); border-radius: 12px; padding: 20px 16px; text-align: center;
+    background: #fff;
+  }
+  .bench .b .v { font-size: 1.8rem; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+  .bench .b .v small { font-size: 0.95rem; color: var(--accent); font-weight: 700; }
+  .bench .b .t { font-size: 12.5px; color: var(--muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bench .b .d { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* case study split */
+  .case { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; margin-top: 24px; }
+  @media (max-width: 820px) { .case { grid-template-columns: 1fr; } }
+  .case .tag {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  }
+  .case h4 { margin: 0 0 10px; font-size: 1.15rem; color: var(--navy); }
+  .case p { font-size: 0.98rem; }
+
+  /* case study carousel */
+  .carousel { margin-top: 28px; position: relative; }
+  .carousel-viewport { overflow: hidden; }
+  .carousel-track { display: flex; transition: transform .5s cubic-bezier(.4,0,.2,1); }
+  .carousel-slide { flex: 0 0 100%; min-width: 0; }
+  .carousel-slide .slide-head { max-width: var(--read); margin: 0 auto; }
+  .carousel-slide .tag {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  }
+  .carousel-slide h4 { margin: 0 0 10px; font-size: 1.2rem; color: var(--navy); }
+  .carousel-slide .slide-head p { font-size: 1rem; }
+  .carousel-slide figure.fig { margin-top: 20px; max-width: var(--read); }
+  .carousel-slide figure.fig figcaption { max-width: 100%; }
+  .carousel-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #fff; border: 1px solid var(--line);
+    box-shadow: 0 6px 18px -8px rgba(15,43,82,0.4);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    color: var(--navy); z-index: 5; transition: transform .15s ease, background .15s ease;
+  }
+  .carousel-arrow:hover { background: var(--bg-tint); transform: translateY(-50%) scale(1.08); }
+  .carousel-arrow.prev { left: -8px; }
+  .carousel-arrow.next { right: -8px; }
+  .carousel-arrow svg { width: 18px; height: 18px; }
+  .carousel-dots { display: flex; gap: 10px; justify-content: center; margin-top: 24px; }
+  .carousel-dot {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--line);
+    border: none; padding: 0; cursor: pointer; transition: background .2s ease, transform .2s ease;
+  }
+  .carousel-dot.active { background: var(--accent); transform: scale(1.3); }
+  @media (max-width: 900px) { .carousel-arrow.prev { left: 2px; } .carousel-arrow.next { right: 2px; } }
+
+  /* footer */
+  footer {
+    background: var(--navy-deep); color: #b8cae2; padding: 56px 28px 40px;
+  }
+  .foot-inner { max-width: var(--max); margin: 0 auto; }
+  .cite {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(156,198,238,0.18);
+    border-radius: 12px; padding: 20px 22px; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12.5px; color: #cbd9ec; line-height: 1.7; overflow-x: auto; white-space: pre;
+  }
+  .foot-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 32px; font-size: 13px; color: #7f9bbf; }
+  .foot-meta a { color: #9cc6ee; }
+
+  .em { color: var(--navy); font-weight: 600; }
+  ul.clean { padding-left: 20px; color: #2c3a4d; }
+  ul.clean li { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#top"><img src="img/orion-logo.png" alt="Orion" /></a>
+    <nav class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#research">Deep Research</a>
+      <a href="#skills">Self-Evolution</a>
+      <a href="#pathology">Visual Navigation</a>
+      <a href="#discovery">Discovery</a>
+      <a href="#paper">Reference</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <svg class="stars" preserveAspectRatio="none" viewBox="0 0 1200 600">
+    <g fill="#9cc1e6">
+      <circle cx="120" cy="90" r="1.4"/><circle cx="300" cy="160" r="1"/><circle cx="520" cy="60" r="1.6"/>
+      <circle cx="760" cy="120" r="1.1"/><circle cx="980" cy="70" r="1.3"/><circle cx="1080" cy="200" r="1"/>
+      <circle cx="200" cy="300" r="1.1"/><circle cx="640" cy="260" r="1.2"/><circle cx="900" cy="320" r="1.4"/>
+      <circle cx="420" cy="380" r="1"/><circle cx="150" cy="460" r="1.2"/><circle cx="1040" cy="440" r="1.1"/>
+    </g>
+  </svg>
+  <div class="hero-inner">
+    <h1><span style="white-space:nowrap"><img class="title-logo" src="img/orion-logo.png" alt="Orion" />: Towards Lab Automation</span><br />with <span class="grad">Computer-Using Agents</span></h1>
+    <div class="cta">
+      <a class="btn btn-paper" href="https://www.biorxiv.org/" aria-label="Paper on bioRxiv">
+        <img src="img/logo-biorxiv-white.png" alt="bioRxiv" />
+      <a class="btn btn-github" href="https://github.com/Genentech/Orion" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        Code</a>
+      <a class="btn btn-hf" href="https://huggingface.co/datasets/orion-agent/" target="_blank" rel="noopener">
+        <span style="font-size:13px;line-height:1">🤗</span>
+        Data</a>
+      <a class="btn btn-explore" href="#overview">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        Explore</a>
+    </div>
+    <p class="lede">Automating the computational layer of laboratory work by operating computers the way real scientists do.</p>
+    <p class="authors"><b>Chang Ma</b>*, <b>Linh T. Trinh</b>*, <b>Matt Bucci</b>, <b>Aviv Regev</b>, <b>Hanchen Wang</b></p>
+    <p class="affil">*Equal contribution</p>
+    <div class="affil-logos">
+      <img class="lg-gene" src="img/logo-genentech.png" alt="Genentech" />
+      <img class="lg-hku" src="img/logo-hku.png" alt="The University of Hong Kong" />
+      <img class="lg-stanford" src="img/logo-stanford.png" alt="Stanford University" />
+    </div>
+  </div>
+</div>
+
+<!-- BIOIMAGING BANNER -->
+<div class="bio-banner">
+  <img src="img/bioimaging.jpg" alt="Biomedical imaging: light microscopy, digital pathology, and fluorescence cell imaging" />
+</div>
+
+<!-- INTRO -->
+<section id="overview">
+  <div class="reading">
+    <div class="kicker">The Challenge</div>
+    <h2>Laboratory discovery is bottlenecked by its computational layer</h2>
+    <p class="lead">Modern discovery increasingly depends on computational workflows that connect experimental data to analysis, interpretation, and follow-up hypotheses. Yet these workflows remain labor-intensive — built on specialized software, visual inspection through graphical user interfaces, and the integration of knowledge across many scattered sources.</p>
+    <p>Most AI agents for biology are confined to text interfaces or predefined APIs. They cannot click through a figure, pan across a whole-slide image, or operate the interactive scientific tools that real discovery depends on. To automate this computational layer, an agent needs to do what a scientist does — <span class="em">use a computer</span>.</p>
+    <p>We introduce <span class="em">Orion</span>, a computer-using AI agent that combines code execution with GUI-based control. It navigates digital figures with complex hierarchical structure, extracts detail from thousands of multimodal inputs, and connects evidence across steps to generate coherent hypotheses — sustaining fully automated pipelines of more than 300 sequential actions, and moving towards genuine lab automation.</p>
+  </div>
+
+  <figure class="fig fig-narrow">
+    <img src="img/teaser.png" alt="Overview of Orion operating within a computer environment with GUI and terminal interfaces." />
+    <figcaption><b>Overview of Orion.</b> Orion operates a standard computer through both a GUI and a terminal — like a human scientist — driving scientific software while inspecting figures and web databases.</figcaption>
+  </figure>
+</section>
+
+<!-- HOW IT WORKS -->
+<div class="band">
+  <section>
+    <div class="reading">
+      <div class="kicker">How Orion Works</div>
+      <h2>Two interfaces, one shared workspace</h2>
+      <p>Orion mirrors the skills of a human scientist through two integrated interfaces. A <span class="em">terminal</span> navigates the file system and executes Python for data processing; a <span class="em">GUI interface</span> perceives the screen and operates off-the-shelf software through mouse and keyboard. A hierarchical architecture keeps long-horizon work tractable — a controller manages global strategy while specialized GUI subagents are spawned on demand and intermediate results are externalized to disk.</p>
+    </div>
+
+    <div class="video-embed">
+      <iframe src="https://www.youtube-nocookie.com/embed/Z0aBZYCq2qs" title="Orion demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+  </section>
+</div>
+
+<!-- DEEP RESEARCH -->
+<section id="research">
+  <div class="reading">
+    <div class="kicker">Visual-Centric Deep Research</div>
+    <h2>Seeing the evidence, not just reading about it</h2>
+
+    <figure class="fig fig-narrow">
+    <img src="img/deepresearch.png" alt="Orion reviewing primary visual evidence, clicking on precise coordinates to zoom into high-resolution images." />
+    <figcaption style="text-align:center;"><b>Example: </b>Orion reviews primary visual evidence, and zoom into high-resolution images for details.</figcaption>
+  </figure>
+
+
+    <p>Many biological databases expose details only through a GUI, and scientific figures carry information that text-only agents simply cannot reach. Orion browses the web and inspects images through the same interfaces a researcher uses — zooming into high-resolution staining, navigating multi-panel figures, and querying databases directly.</p>
+  </div>
+
+  <div class="reading">
+    <p class="quote">Orion achieved over 90% accuracy on biomedical database and literature retrieval — outperforming text-only deep-research agents that never see the underlying images.</p>
+  </div>
+
+  <figure class="fig fig-narrow">
+    <img src="img/dr_performance.png" alt="Orion solving a MicroVQA question by navigating the Human Protein Atlas and zooming into staining." />
+    <figcaption style="text-align:center;">Orion outperforms strong baselines on database and literature search.</figcaption>
+  </figure>
+</section>
+
+<!-- SKILL LEARNING -->
+<div class="band">
+  <section id="skills">
+    <div class="reading">
+      <div class="kicker">Self-Evolving Skill Learning</div>
+      <h2>Learning to operate software it has never seen</h2>
+      <p>Using public tutorials, Orion taught itself to operate unfamiliar scientific software — from CellProfiler for microscopy image analysis to QuPath for digital pathology — drafting workflows programmatically and debugging them visually when results fell short. It verifies its outputs against ground truth, corrects errors, and distills each solved task into a reusable skill, building a curriculum from simple tasks toward advanced analysis.</p>
+    </div>
+
+  <figure class="fig fig-narrow">
+    <img src="img/self_evolve.png" alt="Orion solving a MicroVQA question by navigating the Human Protein Atlas and zooming into staining." />
+    <figcaption style="text-align:center;">Self-Evolving Skill Learning on QuPath. </figcaption>
+  </figure>
+
+    
+  </section>
+</div>
+
+<!-- PATHOLOGY -->
+<section id="pathology">
+  <div class="reading">
+    <div class="kicker">Digital Pathology</div>
+    <h2>Navigating whole-slide images from tissue to cell</h2>
+    <p>Whole-slide images span centimeters of tissue down to micron-scale subcellular detail. Operating QuPath, Orion learned the intuitive "click-hold-drag" motor skills needed to define regions of interest, and developed a hierarchical browsing pattern — alternating broad tissue exploration with fine-grained local inspection.</p>
+    <p>Localizing and segmenting breast-cancer metastases in lymph-node slides, Orion beat a SAM baseline by <span class="em">+12.3% F1</span> and <span class="em">+15.5% spatial IoU</span>, performing comparably to a human annotator. </p>
+  </div>
+
+  <div class="video-embed">
+      <iframe src="https://www.youtube-nocookie.com/embed/Msiqce0hFhc" title="Orion pathology" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+</section>
+
+<!-- DISCOVERY -->
+<div class="band-navy">
+  <section id="discovery">
+    <div class="reading">
+      <div class="kicker">Open-Ended Discovery</div>
+      <h2>100 hours of autonomous discovery on the JUMP dataset</h2>
+      <p>We challenged Orion with hypothesis generation on JUMP — the largest public optical screening dataset, with Cell Painting profiles for over 15,000 genetic perturbations. Across four days of autonomous operation, Orion mined the data for disease-associated genes and distinctive phenotypes, integrating imaging evidence with knowledge from KEGG, the Human Protein Atlas, and the literature.</p>
+      <p>It generated <span style="color:#9ec6ff;font-weight:600">52 detailed reports</span>; human review prioritized <span style="color:#9ec6ff;font-weight:600">22 plausible mechanistic hypotheses</span> — spanning mitochondrial dysfunction, cell-cycle arrest, and organelle depletion, linked to cancer, metabolic, and neurodevelopmental disease.</p>
+    </div>
+
+
+    <figure class="fig fig-narrow">
+      <img src="img/jump_discovery.png" alt="Orion's iterative discovery workflow, action-transition patterns, and human review pipeline on JUMP." />
+      <figcaption>Hypotheses are first proposed from observed experimental phenotypic data, and then contextualized through systematic searches of biological knowledge bases and the literature to identify supporting evidence and research gaps. Finally, hypotheses are refined (right) and verified (left) using complementary databases.</figcaption>
+    </figure>
+  </section>
+</div>
+
+<!-- CASE STUDIES -->
+<section>
+  <div class="reading">
+    <div class="kicker">Case Studies</div>
+    <h2>From morphology to mechanism</h2>
+    <p>With light-touch human feedback, Orion went beyond description to propose biologically grounded, mechanistically distinct hypotheses — correcting its own segmentation and normalization mistakes along the way.</p>
+  </div>
+
+  <div class="carousel" id="caseCarousel">
+    <button class="carousel-arrow prev" aria-label="Previous discovery">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="carousel-viewport">
+      <div class="carousel-track">
+
+        <div class="carousel-slide">
+          <div class="slide-head">
+            <span class="tag">Discovery 1 · BIRC5</span>
+            <h4>Substates of polyploidy in BIRC5 knockout</h4>
+            <p>Orion recapitulated BIRC5's role in cell-cycle and apoptosis, then — after human feedback on an initial segmentation error — refined its pipeline to handle large, irregular nuclei. It quantified a 9-fold rise in polyploid cells and resolved <span class="em">two distinct substates</span>, proposing that endoreduplication and failed cytokinesis drive alternative routes to apoptotic resistance.</p>
+          </div>
+          <figure class="fig">
+            <img src="img/birc5.png" alt="BIRC5 knockout case study: polyploid-cell segmentation, single-cell morphology, and two resolved substates." />
+            <figcaption><b>Discovery 1 · BIRC5.</b> Orion segments polyploid cells, quantifies single-cell morphology, resolves two polyploid substates, and synthesizes a stepwise mechanistic model.</figcaption>
+          </figure>
+        </div>
+
+        <div class="carousel-slide">
+          <div class="slide-head">
+            <span class="tag">Discovery 2 · Focal Adhesion</span>
+            <h4>Pathway-level analysis of focal-adhesion perturbations</h4>
+            <p>Extending beyond single genes, Orion compared integrin receptors, structural components, signaling regulators and membrane organizers. After correcting a control-normalization issue, it classified perturbations into <span class="em">fragmented vs. condensed mitochondrial states</span> and proposed that focal-adhesion disruption reshapes mitochondrial organization through convergent mechanistic routes.</p>
+          </div>
+          <figure class="fig">
+            <img src="img/itgav.png" alt="Focal-adhesion case study: pathway members across functional layers, mitochondrial-signature clustering, and benchmarking against fission/fusion regulators." />
+            <figcaption><b>Discovery 2 · Focal adhesion.</b> Orion compares pathway members across functional layers, clusters mitochondrial signatures, and benchmarks against canonical fission/fusion regulators (MFN1/2, OPA1, DRP1).</figcaption>
+          </figure>
+        </div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow next" aria-label="Next discovery">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+    <div class="carousel-dots">
+      <button class="carousel-dot active" aria-label="Show discovery 1"></button>
+      <button class="carousel-dot" aria-label="Show discovery 2"></button>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.getElementById('caseCarousel');
+    if (!root) return;
+    var track = root.querySelector('.carousel-track');
+    var slides = root.querySelectorAll('.carousel-slide');
+    var dots = root.querySelectorAll('.carousel-dot');
+    var i = 0;
+    function go(n) {
+      i = (n + slides.length) % slides.length;
+      track.style.transform = 'translateX(' + (-i * 100) + '%)';
+      dots.forEach(function (d, k) { d.classList.toggle('active', k === i); });
+    }
+    root.querySelector('.carousel-arrow.prev').addEventListener('click', function () { go(i - 1); });
+    root.querySelector('.carousel-arrow.next').addEventListener('click', function () { go(i + 1); });
+    dots.forEach(function (d, k) { d.addEventListener('click', function () { go(k); }); });
+  })();
+</script>
+
+<!-- FOOTER / CITE -->
+<footer id="paper">
+  <div class="foot-inner">
+    <div class="kicker" style="color:#6fd0f0">Reference</div>
+    <div class="cite">@article{ma2026orion,
+  title   = {Orion: Towards Lab Automation with Computer-Using Agents},
+  author  = {Ma, Chang and Trinh, Linh T. and Bucci, Matt and Regev, Aviv and Wang, Hanchen},
+  year    = {2026},
+  note    = {Genentech, University of Hong Kong, Stanford University}
+}</div>
+    <div class="foot-meta">
+      <div>Email to: <a href="mailto:cma@cs.hku.hk">cma@cs.hku.hk</a> · <a href="mailto:regev.aviv@gene.com">regev.aviv@gene.com</a> · <a href="mailto:wang.hanchen@gene.com">wang.hanchen@gene.com</a></div>
+      <div><a href="https://www.biorxiv.org/">Read the full paper (PDF) →</a></div>
+    </div>
+    <div class="foot-meta" style="border-top:1px solid rgba(156,198,238,0.15);padding-top:18px;margin-top:24px">
+      <div>© 2026 Genentech, Inc.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
